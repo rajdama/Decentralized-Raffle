@@ -6,18 +6,37 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+
 error Raffle__NotEnoughEth();
 
-contract Raffle {
+contract Raffle is VRFConsumerBaseV2 {
     // State Variables
     uint256 private immutable i_entranceFees;
     address payable[] private s_players;
+    VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
+    bytes32 private immutable i_gasLane;
+    uint64 private immutable i_subscriptionId;
+    uint32 private immutable i_callbackGasLimit;
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
+    uint32 private constant NUM_WORDS = 1;
 
     // Events
     event RaffleEnter(address indexed player);
 
-    constructor(uint256 entranceFee) {
+    constructor(
+        address vrfCoordinatorV2,
+        uint256 entranceFee,
+        bytes32 gasLane,
+        uint64 subscriptionId,
+        uint16 callbackGasLimit
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFees = entranceFee;
+        i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
+        i_gasLane = gasLane;
+        i_subscriptionId = subscriptionId;
+        i_callbackGasLimit = callbackGasLimit;
     }
 
     function enterRaffle() public payable {
@@ -27,6 +46,26 @@ contract Raffle {
         s_players.push(payable(msg.sender));
         emit RaffleEnter(msg.sender);
     }
+
+    // This function will be run by chain link keeper inorder to automate the process
+    function pickRandomWinner() external {
+        // s1] request random winner
+        // s2] once we get it do something with it
+        // Requesting random number must be done in 2 transaction in order to ensure that no one can manipulate it
+
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
+            i_gasLane, //gaslane: Maximum gas price willing to pay.
+            i_subscriptionId, //for requesting any computation(random num in this case) from on chain to of chain i.e via oracle we need to pay for it and this is subsriptionId(paymentId) to that computation request
+            REQUEST_CONFIRMATIONS, //How many confirmations the Chainlink node should wait before responding
+            i_callbackGasLimit, //Maximum gas price willing to pay for fulfillRandomWords function
+            NUM_WORDS //How many random values to request
+        );
+    }
+
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] memory randomWords
+    ) internal override {}
 
     function getEntranceFee() public view returns (uint256) {
         return i_entranceFees;
