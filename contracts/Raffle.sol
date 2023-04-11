@@ -45,7 +45,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     //Lottery Variables
     address private s_recentWinner;
-    RaffleState private s_rafflestate;
+    RaffleState private s_raffleState;
     uint256 private s_lastTimeStamp;
     uint256 private i_interval;
 
@@ -67,7 +67,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         i_gasLane = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
-        s_rafflestate = RaffleState.OPEN;
+        s_raffleState = RaffleState.OPEN;
         i_interval = interval;
         s_lastTimeStamp = block.timestamp;
     }
@@ -76,7 +76,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         if (msg.value < i_entranceFees) {
             revert Raffle__NotEnoughEth();
         }
-        if (s_rafflestate != RaffleState.OPEN) {
+        if (s_raffleState != RaffleState.OPEN) {
             revert Raffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
@@ -100,7 +100,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         override
         returns (bool upkeepNeeded, bytes memory /* performData */)
     {
-        bool isOpen = (RaffleState.OPEN == s_rafflestate);
+        bool isOpen = (RaffleState.OPEN == s_raffleState);
         bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
         bool hasPlayers = (s_players.length > 0);
         bool hasBalance = address(this).balance > 0;
@@ -113,7 +113,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
             revert Raffle__UpkeepNotNeeded(
                 address(this).balance,
                 s_players.length,
-                uint256(s_rafflestate)
+                uint256(s_raffleState)
             );
         }
     }
@@ -124,7 +124,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         // s2] once we get it do something with it
         // Requesting random number must be done in 2 transaction in order to ensure that no one can manipulate it
 
-        s_rafflestate = RaffleState.CALCULATING;
+        s_raffleState = RaffleState.CALCULATING;
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane, //gaslane: Maximum gas price willing to pay.
             i_subscriptionId, //for requesting any computation(random num in this case) from on chain to of chain i.e via oracle we need to pay for it and this is subsriptionId(paymentId) to that computation request
@@ -142,7 +142,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
-        s_rafflestate = RaffleState.OPEN;
+        s_raffleState = RaffleState.OPEN;
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
@@ -152,15 +152,41 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit WinnerPicked(recentWinner);
     }
 
-    function getEntranceFee() public view returns (uint256) {
-        return i_entranceFees;
+    /** Getter Functions */
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
+    }
+
+    function getNumWords() public pure returns (uint256) {
+        return NUM_WORDS;
+    }
+
+    function getRequestConfirmations() public pure returns (uint256) {
+        return REQUEST_CONFIRMATIONS;
+    }
+
+    function getRecentWinner() public view returns (address) {
+        return s_recentWinner;
     }
 
     function getPlayer(uint256 index) public view returns (address) {
         return s_players[index];
     }
 
-    function getRecentWinner() public view returns (address) {
-        return s_recentWinner;
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
+    }
+
+    function getEntranceFee() public view returns (uint256) {
+        return i_entranceFees;
+    }
+
+    function getNumberOfPlayers() public view returns (uint256) {
+        return s_players.length;
     }
 }
