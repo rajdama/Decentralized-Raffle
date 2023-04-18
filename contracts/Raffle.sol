@@ -56,11 +56,11 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     constructor(
         address vrfCoordinatorV2, // contract
-        uint256 entranceFee,
-        bytes32 gasLane,
         uint64 subscriptionId,
-        uint16 callbackGasLimit,
-        uint256 interval
+        bytes32 gasLane,
+        uint256 entranceFee,
+        uint256 interval,
+        uint32 callbackGasLimit
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFees = entranceFee;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
@@ -116,6 +116,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
                 uint256(s_raffleState)
             );
         }
+        pickRandomWinner();
     }
 
     // This function will be run by chain link keeper inorder to automate the process

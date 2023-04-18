@@ -1,5 +1,5 @@
 const { network, ethers } = require("hardhat");
-const developmentChains = require("../helper-hardhat-config");
+const { developmentChains } = require("../helper-hardhat-config");
 
 //Constructor parameters
 
@@ -15,7 +15,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
   if (developmentChains.includes(network.name)) {
     log("Local network is detected now deploying mocks...");
-    await deploy("VRFcoordinatorV2Mock", {
+    await deploy("VRFCoordinatorV2Mock", {
       from: deployer,
       log: true,
       args: [BASE_FEE, GAS_PRICE_LINK],

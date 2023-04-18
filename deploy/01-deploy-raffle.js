@@ -1,4 +1,4 @@
-const { network } = require("hardhat");
+const { network, ethers } = require("hardhat");
 const {
   developmentChains,
   networkConfig,
@@ -13,7 +13,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   let vrfCoordinatorV2Address, subscriptionId;
 
   if (developmentChains.includes(network.name)) {
-    const vrfCoordinatorV2Mock = ethers.getContract("VRFCoordinatorV2Mock");
+    const vrfCoordinatorV2Mock = await ethers.getContract(
+      "VRFCoordinatorV2Mock"
+    );
     vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
     const transactionResponse = await vrfCoordinatorV2Mock.createSubscription();
     const transactionReceipt = await transactionResponse.wait();
@@ -28,8 +30,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     vrfCoordinatorV2Address,
     subscriptionId,
     networkConfig[chainId]["gasLane"],
-    networkConfig[chainId]["keepersUpdateInterval"],
     networkConfig[chainId]["raffleEntranceFee"],
+    networkConfig[chainId]["keepersUpdateInterval"],
     networkConfig[chainId]["callbackGasLimit"],
   ];
 
@@ -40,3 +42,5 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     waitConfiramtions: network.config.blockConfirmations || 1,
   });
 };
+
+module.exports.tags = ["all", "mocks"];

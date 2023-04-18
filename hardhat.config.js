@@ -9,7 +9,7 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      chainId: 3317,
+      chainId: 31337,
       blockConfirmations: 1,
     },
   },
