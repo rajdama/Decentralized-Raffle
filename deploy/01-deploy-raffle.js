@@ -41,6 +41,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     waitConfiramtions: network.config.blockConfirmations || 1,
   });
+
+  log("Contract deployed");
+  log("----------------------------------------------------");
 };
 
-module.exports.tags = ["all", "mocks"];
+module.exports.tags = ["all", "raffle"];

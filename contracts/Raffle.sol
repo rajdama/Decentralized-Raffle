@@ -8,7 +8,7 @@ pragma solidity ^0.8.4;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
 error Raffle__NotEnoughEth();
 error Raffle__TransferFailed();
@@ -26,7 +26,7 @@ error Raffle__UpkeepNotNeeded(
  * @dev This implements Chainlink VRF v2 and Chainlink Keepers
  */
 
-contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
+contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     /* Type declarations*/
     enum RaffleState {
         OPEN,
@@ -107,6 +107,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         upkeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
     }
 
+    // This function will be run by chain link keeper inorder to automate the process
     function performUpkeep(bytes calldata /* performData */) external override {
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
@@ -116,11 +117,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
                 uint256(s_raffleState)
             );
         }
-        pickRandomWinner();
-    }
 
-    // This function will be run by chain link keeper inorder to automate the process
-    function pickRandomWinner() public {
         // s1] request random winner
         // s2] once we get it do something with it
         // Requesting random number must be done in 2 transaction in order to ensure that no one can manipulate it

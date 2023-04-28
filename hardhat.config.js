@@ -13,6 +13,9 @@ module.exports = {
       blockConfirmations: 1,
     },
   },
+  gasReporter: {
+    enabled: false,
+  },
   solidity: "0.8.4",
   namedAccounts: {
     deployer: {
