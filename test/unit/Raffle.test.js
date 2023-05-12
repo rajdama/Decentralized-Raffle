@@ -47,10 +47,13 @@ const { assert, expect } = require("chai");
 
         it("does not allows entrance when raffle is in calculating state", async function () {
           await raffle.enterRaffle({ value: raffleEntranceFee });
+
+          //IT WILL SKIP THE INTERVAL TIME AFTER WHICH LOTTERY IS SUPPOSED TO TAKE PLACE IN ORDER TO TEST WITHOUT WAITING FOR THE INTERVAL TIME
           await network.provider.send("evm_increaseTime", [
             interval.toNumber() + 1,
           ]);
           await network.provider.send("evm_mine", []);
+
           await raffle.performUpkeep([]);
           await expect(
             raffle.enterRaffle({ value: raffleEntranceFee })
@@ -66,6 +69,30 @@ const { assert, expect } = require("chai");
           await expect(
             raffle.enterRaffle({ value: raffleEntranceFee })
           ).to.emit(raffle, "RaffleEnter");
+        });
+      });
+
+      describe("checkupkeep", async function () {
+        it("returns false if people have not sent enough eth", async function () {
+          //TIME TRAVEL
+          await network.provider.send("evm_increaseTime", [
+            interval.toNumber() + 1,
+          ]);
+          await network.provider.send("evm_mine", []);
+          const { upkeepNeeded } = await raffle.callStatic.checkUpkeep([]);
+          assert(!upkeepNeeded);
+        });
+        it("return false if raffle isn't open", async function () {
+          await raffle.enterRaffle({ value: raffleEntranceFee });
+          await network.provider.send("evm_increaseTime", [
+            interval.toNumber() + 1,
+          ]);
+          await network.provider.send("evm_mine", []);
+          await raffle.performUpkeep([]);
+          const raffleState = await raffle.getRaffleState();
+          const { upkeepNeeded } = await raffle.callStatic.checkUpkeep([]);
+          assert.equal(raffleState.toString(), "1");
+          assert.equal(upkeepNeeded, false);
         });
       });
     });
