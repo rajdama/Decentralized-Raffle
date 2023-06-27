@@ -123,7 +123,6 @@ const { assert, expect } = require("chai");
           ]);
           await network.provider.request({ method: "evm_mine", params: [] });
           const tx = await raffle.performUpkeep([]);
-          console.log(tx);
           assert(tx);
         });
 
