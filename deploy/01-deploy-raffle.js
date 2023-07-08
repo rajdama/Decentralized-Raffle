@@ -3,6 +3,7 @@ const {
   developmentChains,
   networkConfig,
 } = require("../helper-hardhat-config");
+const { verify } = require("../utils/verify");
 
 const FUND_AMOUNT = ethers.utils.parseEther("1"); // 1 Ether, or 1e18 (10^18) Wei
 
@@ -41,6 +42,14 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     waitConfiramtions: network.config.blockConfirmations || 1,
   });
+
+  if (
+    !developmentChains.includes(network.name) &&
+    process.env.ETHERSCAN_API_KEY
+  ) {
+    log("Verifying...");
+    await verify(raffle.address, arguments);
+  }
 
   log("Contract deployed");
   log("----------------------------------------------------");
